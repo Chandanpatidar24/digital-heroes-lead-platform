@@ -19,8 +19,6 @@ RUN npm install
 # Copy backend source code & Prisma schema
 COPY backend/ ./
 RUN npx prisma generate
-RUN npx prisma db push --skip-generate
-RUN node prisma/seed.js
 
 # Copy built frontend assets from Stage 1 into frontend/dist
 COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
@@ -30,4 +28,5 @@ EXPOSE 5000
 ENV NODE_ENV=production
 ENV PORT=5000
 
-CMD ["node", "src/app.js"]
+# Run DB sync, seed check, and launch Express server on container startup
+CMD ["sh", "-c", "npx prisma db push --skip-generate && node prisma/seed.js && node src/app.js"]
