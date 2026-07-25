@@ -1,22 +1,28 @@
 import axios from 'axios';
 
+// Dynamic API Base URL: Uses relative /api for production, or VITE_API_URL if configured
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 // Attach Authorization header if token exists in localStorage
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('dh_auth_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('dh_auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
+);
 
 // Response interceptor for handling 401 session expiration
 api.interceptors.response.use(
@@ -24,7 +30,10 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // If token is invalid or expired, clear local storage session
-      if (error.response.data?.message?.includes('expired') || error.response.data?.message?.includes('Invalid')) {
+      if (
+        error.response.data?.message?.includes('expired') ||
+        error.response.data?.message?.includes('Invalid')
+      ) {
         localStorage.removeItem('dh_auth_token');
         localStorage.removeItem('dh_user');
       }
