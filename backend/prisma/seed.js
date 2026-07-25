@@ -4,16 +4,16 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Checking database seed state...');
+  console.log('🌱 Syncing default user credentials in Neon database...');
 
   const adminPassword = await bcrypt.hash('admin123', 10);
   const memberPassword = await bcrypt.hash('member123', 10);
   const alexPassword = await bcrypt.hash('alex123', 10);
 
-  // Safe Upsert for default Admin user
+  // Always reset/ensure default Admin user credentials
   const admin = await prisma.user.upsert({
     where: { email: 'admin@digitalheroes.com' },
-    update: {},
+    update: { passwordHash: adminPassword, role: 'ADMIN' },
     create: {
       name: 'Sarah Jenkins (Admin)',
       email: 'admin@digitalheroes.com',
@@ -22,10 +22,10 @@ async function main() {
     },
   });
 
-  // Safe Upsert for default Member user (John)
+  // Always reset/ensure default Member user credentials (John)
   const memberJohn = await prisma.user.upsert({
     where: { email: 'member@digitalheroes.com' },
-    update: {},
+    update: { passwordHash: memberPassword, role: 'MEMBER' },
     create: {
       name: 'John Doe (Sales)',
       email: 'member@digitalheroes.com',
@@ -34,10 +34,10 @@ async function main() {
     },
   });
 
-  // Safe Upsert for second Member user (Alex)
+  // Always reset/ensure second Member user credentials (Alex)
   const memberAlex = await prisma.user.upsert({
     where: { email: 'alex@digitalheroes.com' },
-    update: {},
+    update: { passwordHash: alexPassword, role: 'MEMBER' },
     create: {
       name: 'Alex Rivera (Sales)',
       email: 'alex@digitalheroes.com',
@@ -47,14 +47,14 @@ async function main() {
   });
 
   // Remove any leftover Chandan Patidar seed lead
-  // await prisma.lead.deleteMany({
-  //   where: {
-  //     OR: [
-  //       { name: { contains: 'Chandan' } },
-  //       { email: { contains: 'chandan' } },
-  //     ],
-  //   },
-  // });
+  await prisma.lead.deleteMany({
+    where: {
+      OR: [
+        { name: { contains: 'Chandan' } },
+        { email: { contains: 'chandan' } },
+      ],
+    },
+  });
 
   // Check existing lead count - ONLY seed sample leads if database has 0 leads!
   const leadCount = await prisma.lead.count();
@@ -184,7 +184,7 @@ async function main() {
     console.log(`ℹ️ Database contains ${leadCount} active leads. Preserving user data.`);
   }
 
-  console.log('🌱 Seed process finished safely!');
+  console.log('✅ Default credentials synced: admin@digitalheroes.com / admin123!');
 }
 
 main()
