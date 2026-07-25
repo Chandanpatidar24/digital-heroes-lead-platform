@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Build Output & Bundles
+frontend/dist/
+dist/
+build/
+
+# Local Databases & SQLite Files
+backend/prisma/*.db
+backend/prisma/*.db-journal
+*.db
+*.sqlite
+
+# Testing & Coverage
+coverage/
+.vitest/
+
+# OS & IDE System Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
